@@ -48,6 +48,8 @@ defmodule PHP do
   ## Examples
       iex> PHP.array_count_values(["a", "b", "c", "a"])
       %{"a" => 2, "b" => 1, "c" => 1}
+      iex> PHP.array_count_values(%{a: "a", b: "b", c: "c", d: "a"})
+      %{"a" => 2, "b" => 1, "c" => 1}
       iex> PHP.array_count_values([3, 5, 3, "foo", "bar", "foo"])
       %{3 => 2, 5 => 1, "bar" => 1, "foo" => 2}
       iex> PHP.array_count_values([true, 4.2, 42, "fubar"])
@@ -93,20 +95,22 @@ defmodule PHP do
   ## Examples
       iex> PHP.array_map(nil, [1, 2, 3])
       [1, 2, 3]
-      iex> PHP.array_map(&(&1 * 2), [1, 2, 3])
-      [2, 4, 6]
+      iex> PHP.array_map(&(&1 * 2), [1, 3, 5])
+      [2, 6, 10]
+      iex> PHP.array_map(&(&1), %{:name => "JerryPan", :id => 88, 1 => "year", 2 => "2015"})
+      ["year", "2015", 88, "JerryPan"]
       iex> PHP.array_map(fn(element) -> element * 5 end, [a: 1, b: 2, c: 3])
       [5, 10, 15]
       iex> PHP.array_map(fn(element) -> element * 10 end, %{a: 1, b: 2, c: 3})
       [10, 20, 30]
-      iex> PHP.array_map(nil, [1, 2, 3], [4, 5, 6])
-      [[1, 4], [2, 5], [3, 6]]
-      iex> PHP.array_map(nil, [a: 1, b: 2], [4, 5, 6])
-      [[1, 4], [2, 5], [nil, 6]]
-      iex> PHP.array_map(&(&1 * &2), [1, 2, 3], [4, 5, 6])
-      [4, 10, 18]
-      iex> PHP.array_map(&(&1 * &2), [a: 1, b: 2, c: 3], [a: 4, b: 5, c: 6])
-      [4, 10, 18]
+      iex> PHP.array_map(nil, [1, 2, 3], [5, 6, 7])
+      [[1, 5], [2, 6], [3, 7]]
+      iex> PHP.array_map(nil, [a: 1, b: 2], [5, 6, 7])
+      [[1, 5], [2, 6], [nil, 7]]
+      iex> PHP.array_map(&(&1 * &2), [1, 2, 3], [5, 6, 7])
+      [5, 12, 21]
+      iex> PHP.array_map(&(&1 * &2), [a: 1, b: 2, c: 3], [a: 5, b: 6, c: 7])
+      [5, 12, 21]
   """
   def array_map(fun, list1) do
     if fun == nil do
@@ -142,9 +146,6 @@ defmodule PHP do
     fun.(element1, element2)
   end
 
-  defp array_map_2_private(_fun, [], [], acc) do
-    :lists.reverse(acc)
-  end
   defp array_map_2_private(fun, [hd_1 | tail_1], [hd_2 | tail_2], acc) do
     array_map_2_private(fun, tail_1, tail_2, [array_map_2_fn(hd_1, hd_2, fun) | acc])
   end
@@ -154,6 +155,26 @@ defmodule PHP do
   defp array_map_2_private(fun, [hd_1 | tail_1], [], acc) do
     array_map_2_private(fun, tail_1, [], [array_map_2_fn(hd_1, nil, fun) | acc])
   end
+  defp array_map_2_private(_fun, [], [], acc) do
+    :lists.reverse(acc)
+  end
+
+  @doc """
+  Calculate the product of values in an array.
+  ## Examples
+      iex> PHP.array_product([1, 2, 3])
+      6
+      iex> PHP.array_product([a: 1, b: 2, c: 3])
+      6
+      iex> PHP.array_product(%{a: 1, b: 2, c: 3})
+      6
+  """
+  def array_product(array) do
+    Enum.reduce(array, 1, fn
+                            {_, e}, acc -> acc * e
+                            e, acc -> acc * e
+                          end)
+  end
 
   def sleep(second) do
     :timer.sleep(second * 1000)
@@ -161,9 +182,8 @@ defmodule PHP do
 end
 
 
-
-
-IO.inspect PHP.array_count_values(%{a: "a", b: "b", c: "c", d: "a"})
-# IO.inspect PHP.array_map(nil, %{:name => "JerryPan", :id => 88, 1 => "year", 2 => "2015"})
+IO.inspect PHP.array_product([1, 2, 3])
+IO.inspect PHP.array_product([a: 1, b: 2, c: 3])
+IO.inspect PHP.array_product(%{a: 1, b: 2, c: 3})
 
 # :io.format "~s: ~p~n", ["PHP.sleep(1)", PHP.sleep(1)]
