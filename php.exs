@@ -55,9 +55,13 @@ defmodule PHP do
   """
   def array_count_values(arr) do
     Enum.reduce(arr, %{}, fn(item_in_arr, counter) ->
-      case Map.fetch(counter, item_in_arr) do
-        :error -> Map.put(counter, item_in_arr, 1)
-        {:ok, int_value} -> Map.put(counter, item_in_arr, int_value + 1)
+      case item_in_arr do
+        {_, element} -> element2 = element
+        element -> element2 = element
+      end
+      case Map.fetch(counter, element2) do
+        :error -> Map.put(counter, element2, 1)
+        {:ok, int_value} -> Map.put(counter, element2, int_value + 1)
       end
     end)
   end
@@ -84,6 +88,73 @@ defmodule PHP do
     Dict.keys(array)
   end
 
+  @doc """
+  Applies the callback to the elements of the given arrays.
+  ## Examples
+      iex> PHP.array_map(nil, [1, 2, 3])
+      [1, 2, 3]
+      iex> PHP.array_map(&(&1 * 2), [1, 2, 3])
+      [2, 4, 6]
+      iex> PHP.array_map(fn(element) -> element * 5 end, [a: 1, b: 2, c: 3])
+      [5, 10, 15]
+      iex> PHP.array_map(fn(element) -> element * 10 end, %{a: 1, b: 2, c: 3})
+      [10, 20, 30]
+      iex> PHP.array_map(nil, [1, 2, 3], [4, 5, 6])
+      [[1, 4], [2, 5], [3, 6]]
+      iex> PHP.array_map(nil, [a: 1, b: 2], [4, 5, 6])
+      [[1, 4], [2, 5], [nil, 6]]
+      iex> PHP.array_map(&(&1 * &2), [1, 2, 3], [4, 5, 6])
+      [4, 10, 18]
+      iex> PHP.array_map(&(&1 * &2), [a: 1, b: 2, c: 3], [a: 4, b: 5, c: 6])
+      [4, 10, 18]
+  """
+  def array_map(fun, list1) do
+    if fun == nil do
+      list1
+    else
+      Enum.map(list1, fn(element) -> array_map_1_fn(element, fun) end)
+    end
+  end
+  def array_map(fun, list1, list2) do
+    if fun == nil do
+      fun = fn(element1, element2) -> [element1, element2] end
+    end
+    array_map_2_private(fun, list1, list2, [])
+  end
+
+  defp array_map_1_fn({_, element}, fun) do
+    fun.(element)
+  end
+  defp array_map_1_fn(element, fun) do
+    fun.(element)
+  end
+
+  defp array_map_2_fn({_, element1}, {_, element2}, fun) do
+    fun.(element1, element2)
+  end
+  defp array_map_2_fn({_, element1}, element2, fun) do
+    fun.(element1, element2)
+  end
+  defp array_map_2_fn(element1, {_, element2}, fun) do
+    fun.(element1, element2)
+  end
+  defp array_map_2_fn(element1, element2, fun) do
+    fun.(element1, element2)
+  end
+
+  defp array_map_2_private(_fun, [], [], acc) do
+    :lists.reverse(acc)
+  end
+  defp array_map_2_private(fun, [hd_1 | tail_1], [hd_2 | tail_2], acc) do
+    array_map_2_private(fun, tail_1, tail_2, [array_map_2_fn(hd_1, hd_2, fun) | acc])
+  end
+  defp array_map_2_private(fun, [], [hd_2 | tail_2], acc) do
+    array_map_2_private(fun, [], tail_2, [array_map_2_fn(nil, hd_2, fun) | acc])
+  end
+  defp array_map_2_private(fun, [hd_1 | tail_1], [], acc) do
+    array_map_2_private(fun, tail_1, [], [array_map_2_fn(hd_1, nil, fun) | acc])
+  end
+
   def sleep(second) do
     :timer.sleep(second * 1000)
   end
@@ -91,7 +162,8 @@ end
 
 
 
-IO.inspect PHP.array_keys(%{:name => "JerryPan", :id => 88, 1 => "year", 2 => "2015"})
 
+IO.inspect PHP.array_count_values(%{a: "a", b: "b", c: "c", d: "a"})
+# IO.inspect PHP.array_map(nil, %{:name => "JerryPan", :id => 88, 1 => "year", 2 => "2015"})
 
 # :io.format "~s: ~p~n", ["PHP.sleep(1)", PHP.sleep(1)]
