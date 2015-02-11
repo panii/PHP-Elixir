@@ -176,14 +176,36 @@ defmodule PHP do
                           end)
   end
 
+  @doc """
+  Pick one or more random entries out of an array.
+  ## Examples
+      iex> PHP.array_rand([1, 2, 3])
+      3
+      iex> PHP.array_rand([a: 10, b: 20, c: 30])
+      3
+      iex> PHP.array_rand(%{a: 100, b: 200, c: 300})
+      1
+  """
+  def array_rand(array, _num \\ 1) do
+    << a :: 32, b :: 32, c :: 32 >> = :crypto.rand_bytes(12)
+    :random.seed(a, b, c)
+    case Enum.at(array, :random.uniform(Enum.count(array)) - 1) do
+      {_, e} -> e
+      e -> e
+    end
+  end
+
   def sleep(second) do
     :timer.sleep(second * 1000)
   end
 end
 
-
-IO.inspect PHP.array_product([1, 2, 3])
-IO.inspect PHP.array_product([a: 1, b: 2, c: 3])
-IO.inspect PHP.array_product(%{a: 1, b: 2, c: 3})
+IO.puts "-----------------------------------------------------------"
+IO.inspect PHP.array_rand([1, 2, 3])
+# PHP.sleep(1)
+IO.inspect PHP.array_rand([a: 10, b: 20, c: 30])
+# PHP.sleep(1)
+IO.inspect PHP.array_rand(%{a: 100, b: 200, c: 300})
+IO.puts "-----------------------------------------------------------"
 
 # :io.format "~s: ~p~n", ["PHP.sleep(1)", PHP.sleep(1)]
