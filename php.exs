@@ -61,10 +61,7 @@ defmodule PHP do
         {_, element} -> element2 = element
         element -> element2 = element
       end
-      case Map.fetch(counter, element2) do
-        :error -> Map.put(counter, element2, 1)
-        {:ok, int_value} -> Map.put(counter, element2, int_value + 1)
-      end
+      Map.put(counter, element2, Map.get(counter, element2, 0) + 1)
     end)
   end
 
@@ -73,6 +70,10 @@ defmodule PHP do
   ## Examples
       iex> PHP.array_key_exists(:name, %{name: "JerryPan"})
       true
+      iex> PHP.array_key_exists(:id, %{name: "JerryPan"})
+      false
+      iex> PHP.array_key_exists(:id, [name: "JerryPan"])
+      false
   """
   def array_key_exists(key, search) do
     Dict.has_key?(search, key)
@@ -85,6 +86,8 @@ defmodule PHP do
       [:id, :name]
       iex> PHP.array_keys(%{:name => "JerryPan", :id => 88, 1 => "year", 2 => "2015"})
       [1, 2, :id, :name]
+      iex> IO.inspect PHP.array_keys([name: "JerryPan", id: 88])
+      [:name, :id]
   """
   def array_keys(array) do
     Dict.keys(array)
@@ -182,9 +185,9 @@ defmodule PHP do
       iex> PHP.array_rand([1, 2, 3])
       3
       iex> PHP.array_rand([a: 10, b: 20, c: 30])
-      3
+      30
       iex> PHP.array_rand(%{a: 100, b: 200, c: 300})
-      1
+      100
   """
   def array_rand(array, _num \\ 1) do
     << a :: 32, b :: 32, c :: 32 >> = :crypto.rand_bytes(12)
@@ -195,17 +198,51 @@ defmodule PHP do
     end
   end
 
+  @doc """
+  Return an array with elements in reverse order.
+  ## Examples
+      iex> PHP.array_reverse([1, 2, 3])
+      [3, 2, 1]
+  """
+  def array_reverse(list) do
+    Enum.reverse(list)
+  end
+
+  @doc """
+  Searches the array for a given value and returns the corresponding key if successful.
+  ## Examples
+      iex> PHP.array_search("JerryPan", %{id: 888, user_name: "JerryPan"})
+      :user_name
+      iex> PHP.array_search("JerryPan", [id: 888, user_name: "JerryPan"])
+      :user_name
+      iex> PHP.array_search("Tom", [id: 888, user_name: "JerryPan"])
+      nil
+  """
+  def array_search(needle, array) do
+    if is_list(array) do
+      array_search_private(needle, array)
+    else
+      array_search_private(needle, Dict.to_list(array))
+    end
+  end
+
+  defp array_search_private(needle, [{ret, needle} | _rest]) do
+    ret
+  end
+  defp array_search_private(needle, [_ | rest]) do
+    array_search_private(needle, rest)
+  end
+  defp array_search_private(_needle, []) do
+    nil
+  end
+
   def sleep(second) do
     :timer.sleep(second * 1000)
   end
 end
 
 IO.puts "-----------------------------------------------------------"
-IO.inspect PHP.array_rand([1, 2, 3])
-# PHP.sleep(1)
-IO.inspect PHP.array_rand([a: 10, b: 20, c: 30])
-# PHP.sleep(1)
-IO.inspect PHP.array_rand(%{a: 100, b: 200, c: 300})
+IO.inspect PHP.array_keys([name: "JerryPan", id: 88])
 IO.puts "-----------------------------------------------------------"
 
 # :io.format "~s: ~p~n", ["PHP.sleep(1)", PHP.sleep(1)]

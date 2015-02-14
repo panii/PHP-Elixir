@@ -11,3 +11,5 @@ PHP-Elixir trys to implements a set of PHP functions in Elixir language. This id
 *array_map(fun, array1, array2)*  
 *array_product(array)*  
 *array_rand(array)*  
+*array_reverse(array)*  
+*array_search(needle, array)*  
