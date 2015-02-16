@@ -9,8 +9,10 @@ defmodule PHP do
   ## Examples
     iex> PHP.array_chunk([2, 4, 6], 1)
     [[2], [4], [6]]
+
     iex> PHP.array_chunk([2, 4, 6, 8], 2)
     [[2, 4], [6, 8]]
+
     iex> PHP.array_chunk([2, 4, 6], 2)
     [[2, 4], [6]]
   """
@@ -36,6 +38,7 @@ defmodule PHP do
   ## Examples
       iex> PHP.array_combine(["a", "b", "c"], [1, 2, 3])
       %{"a" => 1, "b" => 2, "c" => 3}
+
       iex> PHP.array_combine([:a, :b, :c], [1, 2, 3])
       %{a: 1, b: 2, c: 3}
   """
@@ -48,10 +51,13 @@ defmodule PHP do
   ## Examples
       iex> PHP.array_count_values(["a", "b", "c", "a"])
       %{"a" => 2, "b" => 1, "c" => 1}
+
       iex> PHP.array_count_values(%{a: "a", b: "b", c: "c", d: "a"})
       %{"a" => 2, "b" => 1, "c" => 1}
+
       iex> PHP.array_count_values([3, 5, 3, "foo", "bar", "foo"])
       %{3 => 2, 5 => 1, "bar" => 1, "foo" => 2}
+
       iex> PHP.array_count_values([true, 4.2, 42, "fubar"])
       %{42 => 1, 4.2 => 1, true => 1, "fubar" => 1}
   """
@@ -61,10 +67,7 @@ defmodule PHP do
         {_, element} -> element2 = element
         element -> element2 = element
       end
-      case Map.fetch(counter, element2) do
-        :error -> Map.put(counter, element2, 1)
-        {:ok, int_value} -> Map.put(counter, element2, int_value + 1)
-      end
+      Map.put(counter, element2, Map.get(counter, element2, 0) + 1)
     end)
   end
 
@@ -73,6 +76,12 @@ defmodule PHP do
   ## Examples
       iex> PHP.array_key_exists(:name, %{name: "JerryPan"})
       true
+
+      iex> PHP.array_key_exists(:id, %{name: "JerryPan"})
+      false
+
+      iex> PHP.array_key_exists(:id, [name: "JerryPan"])
+      false
   """
   def array_key_exists(key, search) do
     Dict.has_key?(search, key)
@@ -83,8 +92,12 @@ defmodule PHP do
   ## Examples
       iex> PHP.array_keys(%{name: "JerryPan", id: 88})
       [:id, :name]
+
       iex> PHP.array_keys(%{:name => "JerryPan", :id => 88, 1 => "year", 2 => "2015"})
       [1, 2, :id, :name]
+
+      iex> IO.inspect PHP.array_keys([name: "JerryPan", id: 88])
+      [:name, :id]
   """
   def array_keys(array) do
     Dict.keys(array)
@@ -95,20 +108,28 @@ defmodule PHP do
   ## Examples
       iex> PHP.array_map(nil, [1, 2, 3])
       [1, 2, 3]
+
       iex> PHP.array_map(&(&1 * 2), [1, 3, 5])
       [2, 6, 10]
+
       iex> PHP.array_map(&(&1), %{:name => "JerryPan", :id => 88, 1 => "year", 2 => "2015"})
       ["year", "2015", 88, "JerryPan"]
+
       iex> PHP.array_map(fn(element) -> element * 5 end, [a: 1, b: 2, c: 3])
       [5, 10, 15]
+
       iex> PHP.array_map(fn(element) -> element * 10 end, %{a: 1, b: 2, c: 3})
       [10, 20, 30]
+
       iex> PHP.array_map(nil, [1, 2, 3], [5, 6, 7])
       [[1, 5], [2, 6], [3, 7]]
+
       iex> PHP.array_map(nil, [a: 1, b: 2], [5, 6, 7])
       [[1, 5], [2, 6], [nil, 7]]
+
       iex> PHP.array_map(&(&1 * &2), [1, 2, 3], [5, 6, 7])
       [5, 12, 21]
+
       iex> PHP.array_map(&(&1 * &2), [a: 1, b: 2, c: 3], [a: 5, b: 6, c: 7])
       [5, 12, 21]
   """
@@ -164,8 +185,10 @@ defmodule PHP do
   ## Examples
       iex> PHP.array_product([1, 2, 3])
       6
+
       iex> PHP.array_product([a: 1, b: 2, c: 3])
       6
+
       iex> PHP.array_product(%{a: 1, b: 2, c: 3})
       6
   """
@@ -179,12 +202,14 @@ defmodule PHP do
   @doc """
   Pick one or more random entries out of an array.
   ## Examples
-      iex> PHP.array_rand([1, 2, 3])
+      iex > PHP.array_rand([1, 2, 3])
       3
-      iex> PHP.array_rand([a: 10, b: 20, c: 30])
-      3
-      iex> PHP.array_rand(%{a: 100, b: 200, c: 300})
-      1
+
+      iex > PHP.array_rand([a: 10, b: 20, c: 30])
+      30
+
+      iex > PHP.array_rand(%{a: 100, b: 200, c: 300})
+      100
   """
   def array_rand(array, _num \\ 1) do
     << a :: 32, b :: 32, c :: 32 >> = :crypto.rand_bytes(12)
@@ -195,17 +220,53 @@ defmodule PHP do
     end
   end
 
+  @doc """
+  Return an array with elements in reverse order.
+  ## Examples
+      iex> PHP.array_reverse([1, 2, 3])
+      [3, 2, 1]
+  """
+  def array_reverse(list) do
+    Enum.reverse(list)
+  end
+
+  @doc """
+  Searches the array for a given value and returns the corresponding key if successful.
+  ## Examples
+      iex> PHP.array_search("JerryPan", %{id: 888, user_name: "JerryPan"})
+      :user_name
+
+      iex> PHP.array_search("JerryPan", [id: 888, user_name: "JerryPan"])
+      :user_name
+
+      iex> PHP.array_search("Tom", [id: 888, user_name: "JerryPan"])
+      nil
+  """
+  def array_search(needle, array) do
+    if is_list(array) do
+      array_search_private(needle, array)
+    else
+      array_search_private(needle, Dict.to_list(array))
+    end
+  end
+
+  defp array_search_private(needle, [{ret, needle} | _rest]) do
+    ret
+  end
+  defp array_search_private(needle, [_ | rest]) do
+    array_search_private(needle, rest)
+  end
+  defp array_search_private(_needle, []) do
+    nil
+  end
+
   def sleep(second) do
     :timer.sleep(second * 1000)
   end
 end
 
-IO.puts "-----------------------------------------------------------"
-IO.inspect PHP.array_rand([1, 2, 3])
-# PHP.sleep(1)
-IO.inspect PHP.array_rand([a: 10, b: 20, c: 30])
-# PHP.sleep(1)
-IO.inspect PHP.array_rand(%{a: 100, b: 200, c: 300})
-IO.puts "-----------------------------------------------------------"
+# IO.puts "-----------------------------------------------------------"
+# IO.inspect PHP.array_keys([name: "JerryPan", id: 88])
+# IO.puts "-----------------------------------------------------------"
 
 # :io.format "~s: ~p~n", ["PHP.sleep(1)", PHP.sleep(1)]
