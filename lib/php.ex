@@ -61,8 +61,8 @@ defmodule PHP do
       iex> PHP.array_count_values([true, 4.2, 42, "fubar"])
       %{42 => 1, 4.2 => 1, true => 1, "fubar" => 1}
   """
-  def array_count_values(arr) do
-    Enum.reduce(arr, %{}, fn(item_in_arr, counter) ->
+  def array_count_values(array) do
+    Enum.reduce(array, %{}, fn(item_in_arr, counter) ->
       case item_in_arr do
         {_, element} -> element2 = element
         element -> element2 = element
@@ -96,7 +96,7 @@ defmodule PHP do
       iex> PHP.array_keys(%{:name => "JerryPan", :id => 88, 1 => "year", 2 => "2015"})
       [1, 2, :id, :name]
 
-      iex> IO.inspect PHP.array_keys([name: "JerryPan", id: 88])
+      iex> PHP.array_keys([name: "JerryPan", id: 88])
       [:name, :id]
   """
   def array_keys(array) do
@@ -260,13 +260,67 @@ defmodule PHP do
     nil
   end
 
+  @doc """
+  Calculate the sum of values in an array.
+  ## Examples
+      iex> PHP.array_sum([4, 9, 182.6])
+      195.6
+
+      iex> PHP.array_sum([a: 4, c: 9, b: 182.6])
+      195.6
+
+      iex> PHP.array_sum(%{a: 4, c: 9, b: 182.6})
+      195.6
+  """
+  def array_sum(array) do
+    Enum.reduce(array, 0, fn(item_in_arr, total) ->
+      case item_in_arr do
+        {_, element} -> element2 = element
+        element -> element2 = element
+      end
+      total + element2
+    end)
+  end
+
+  @doc """
+  Removes duplicate values from an array.
+  ## Examples
+      iex> PHP.array_unique(['Kevin', 'Kevin', 'van', 'Zonneveld', "Kevin"])
+      ['Kevin', 'van', 'Zonneveld', "Kevin"]
+
+      iex> PHP.array_unique(%{'a' => 'green', 0 => 'red', 'b' => 'green', 1 => 'blue', 2 => 'red'})
+      %{0 => 'red', 1 => 'blue', 'a' => 'green'}
+  """
+  def array_unique(array) when is_list(array) do
+    do_uniq(:is_list, array, [])
+  end
+  def array_unique(%{} = array) do
+    Enum.reduce(array, %{}, fn({key, element}, acc) ->
+      case array_search(element, acc) do
+        nil  -> Map.put(acc, key, element)
+        _old_key -> acc
+      end
+    end)
+  end
+
+  defp do_uniq(:is_list, [h|t], acc) do
+    case :lists.member(h, acc) do
+      true  -> do_uniq(:is_list, t, acc)
+      false -> do_uniq(:is_list, t, [h|acc])
+    end
+  end
+  defp do_uniq(:is_list, [], acc) do
+    :lists.reverse(acc)
+  end
+
   def sleep(second) do
     :timer.sleep(second * 1000)
   end
 end
 
 # IO.puts "-----------------------------------------------------------"
-# IO.inspect PHP.array_keys([name: "JerryPan", id: 88])
+# IO.inspect PHP.array_unique(['Kevin', 'Kevin', 'van', 'Zonneveld', "Kevin"]) == ['Kevin', 'van', 'Zonneveld', "Kevin"]
+# IO.inspect PHP.array_unique(%{'a' => 'green', 0 => 'red', 'b' => 'green', 1 => 'blue', 2 => 'red'})
 # IO.puts "-----------------------------------------------------------"
 
 # :io.format "~s: ~p~n", ["PHP.sleep(1)", PHP.sleep(1)]
