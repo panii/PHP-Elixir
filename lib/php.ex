@@ -1,7 +1,7 @@
 defmodule PHP do
 
   @moduledoc """
-  PHP-Elixir trys to implements a set of PHP functions in Elixir language. This idea is influenced by the PHPJS project! [http://phpjs.org/about]
+  PHP-Elixir trys to implements a set of PHP functions in Elixir language. This idea is influenced by the PHPJS project!
   """
 
   @doc """
@@ -241,22 +241,31 @@ defmodule PHP do
 
       iex> PHP.array_search("Tom", [id: 888, user_name: "JerryPan"])
       nil
+
+      iex> PHP.array_search("Tom", [123, "Jerry", "Tom"])
+      2
   """
   def array_search(needle, array) do
     if is_list(array) do
-      array_search_private(needle, array)
+      array_search_private(needle, array, 0)
     else
-      array_search_private(needle, Dict.to_list(array))
+      case Enum.find(array, fn({_, value}) -> value == needle end) do
+        nil -> nil
+        {k, _v} -> k
+      end
     end
   end
 
-  defp array_search_private(needle, [{ret, needle} | _rest]) do
-    ret
+  defp array_search_private(needle, [{k, needle} | _rest], _index) do
+    k
   end
-  defp array_search_private(needle, [_ | rest]) do
-    array_search_private(needle, rest)
+  defp array_search_private(needle, [needle | _rest], index) do
+    index
   end
-  defp array_search_private(_needle, []) do
+  defp array_search_private(needle, [_ | rest], index) do
+    array_search_private(needle, rest, index + 1)
+  end
+  defp array_search_private(_needle, [], _index) do
     nil
   end
 
@@ -313,14 +322,107 @@ defmodule PHP do
     :lists.reverse(acc)
   end
 
+  @doc """
+  Return all the values of an array.
+  ## Examples
+      iex> PHP.array_values(%{name: "JerryPan", id: 88})
+      [88, "JerryPan"]
+
+      iex> PHP.array_values(%{:name => "JerryPan", :id => 88, 1 => "year", 2 => "2015"})
+      ["year", "2015", 88, "JerryPan"]
+
+      iex> PHP.array_values([name: "JerryPan", id: 88])
+      ["JerryPan", 88]
+  """
+  def array_values(array) do
+    Dict.values(array)
+  end
+
+  @doc """
+  Count elements in an array, or properties in an object.
+  ## Examples
+      iex> PHP.count([name: "JerryPan", id: 88])
+      2
+
+      iex> PHP.count(%{:name => "JerryPan", :id => 88, 1 => "year", 2 => "2015"})
+      4
+
+      iex> PHP.count([1, 2])
+      2
+  """
+  def count(array) do
+    Enum.count(array)
+  end
+
+  @doc """
+  Checks if a value exists in an array.
+  ## Examples
+      iex> PHP.in_array("JerryPan", %{id: 888, user_name: "JerryPan"})
+      true
+
+      iex> PHP.in_array("JerryPan", [id: 888, user_name: "JerryPan"])
+      true
+
+      iex> PHP.in_array("Tom", [id: 888, user_name: "JerryPan"])
+      false
+
+      iex> PHP.in_array("Tom", [123, "Jerry", "Tom"])
+      true
+  """
+  def in_array(needle, array) do
+    case array_search(needle, array) do
+      nil -> false
+      _ -> true
+    end
+  end
+
+  @doc """
+  Create an array containing a range of elements.
+  ## Examples
+      iex> PHP.range(0, 12);
+      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+
+      iex> PHP.range(0, 100, 10)
+      [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+
+      iex> PHP.range("a", "i");
+      ["a", "b", "c", "d", "e", "f", "g", "h", "i"]
+
+      iex> PHP.range("a", "i", 2);
+      ["a", "c", "e", "g", "i"]
+
+      iex> PHP.range("c", "a");
+      ["c", "b", "a"]
+  """
+  def range(low, high, step \\ 1)
+
+  def range(low, high, step) when is_integer(low) and is_integer(high) and is_integer(step) do
+    :lists.seq(low, high, step)
+  end
+  def range(low, low, _step) do
+    [low]
+  end
+  def range(low, high, step) when is_binary(low) and byte_size(low) == 1 and is_binary(high) and byte_size(high) == 1 and is_integer(step) do
+    <<low_ascii :: utf8>> = low
+    <<high_ascii :: utf8>> = high
+    range = if low_ascii < high_ascii do
+      :lists.reverse(range(low_ascii, high_ascii, step))
+    else
+      range(high_ascii, low_ascii, step)
+    end
+    Enum.reduce(range, [], fn (num, l) -> [num | l] end)
+    |> :erlang.list_to_binary
+    |> String.codepoints
+  end
+
   def sleep(second) do
     :timer.sleep(second * 1000)
   end
 end
 
 # IO.puts "-----------------------------------------------------------"
-# IO.inspect PHP.array_unique(['Kevin', 'Kevin', 'van', 'Zonneveld', "Kevin"]) == ['Kevin', 'van', 'Zonneveld', "Kevin"]
-# IO.inspect PHP.array_unique(%{'a' => 'green', 0 => 'red', 'b' => 'green', 1 => 'blue', 2 => 'red'})
+# IO.inspect PHP.range("a", "i", 2)
+# IO.inspect PHP.range("r", "z")
 # IO.puts "-----------------------------------------------------------"
 
 # :io.format "~s: ~p~n", ["PHP.sleep(1)", PHP.sleep(1)]

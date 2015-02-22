@@ -1,5 +1,10 @@
 # PHP-Elixir
-PHP-Elixir trys to implements a set of PHP functions in Elixir language. This idea is influenced by the PHPJS project! [http://phpjs.org/about]
+PHP-Elixir tries to implements a set of PHP functions in Elixir language. This idea is influenced by the PHPJS project!
+
+Why on earth would you port PHP to Elixir?
+* to see if I can
+* to learn Elixir
+* to help others learn Elixir
 
 **function lists:**  
 *array_chunk(list, size)*  
@@ -15,3 +20,9 @@ PHP-Elixir trys to implements a set of PHP functions in Elixir language. This id
 *array_search(needle, array)*  
 *array_sum(array)*  
 *array_unique(array)*  
+*array_values(array)*  
+*count(array)*  
+*in_array(needle, array)*  
+*range(low, high, step)*  
+
+  I'm still working on it...
