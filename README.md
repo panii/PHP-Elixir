@@ -1,5 +1,5 @@
 # PHP-Elixir
-PHP-Elixir tries to implements a set of PHP functions in Elixir language. This idea is influenced by the PHPJS project!
+PHP-Elixir tries to port some PHP function in Elixir language. This idea is influenced by the PHPJS project!
 
 Why on earth would you port PHP to Elixir?
 * to see if I can
